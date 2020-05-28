@@ -6,15 +6,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=11,chrome=1">
-    <link type="text/css" rel="stylesheet" href="main.css">
+    <style>
+        #info {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            color: aqua;
+            font-size: 50px;
+        }
+    </style>
 </head>
 
 <body>
-
+    <div id="info">&#8228;</div>
     <script type="text/javascript" src="three.min.js"></script>
     <script type="text/javascript" src="StereoEffect.js"></script>
     <script type="text/javascript" src="DeviceOrientationControls.js"></script>
     <script>
+
         var camera, scene, renderer, effect;
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
         var controls = new THREE.DeviceOrientationControls(camera);
@@ -25,7 +34,6 @@
         var raycaster = new THREE.Raycaster();
         var mouse = new THREE.Vector2();
 
-        //renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
@@ -36,15 +44,17 @@
         //Textures
         var loader = new THREE.TextureLoader();
 
-        var colorInter = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        var colorInter = new THREE.MeshBasicMaterial({ color: 0x6b6b6b });
         var colorGate1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
         var colorGate2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 
-        var interGeo = new THREE.CubeGeometry(10, 10, 10);
+        var interGeo = new THREE.CubeGeometry(1, 1, 1);
+        var bulbGeo = new THREE.SphereGeometry(15, 15, 15);
 
-        var inter = new THREE.Mesh(interGeo, colorInter);
+        var inter = new THREE.Mesh(bulbGeo, colorInter);
         var gate1 = new THREE.Mesh(interGeo, colorGate1);
         var gate2 = new THREE.Mesh(interGeo, colorGate2);
+
 
         var cuartoGeo = new THREE.BoxBufferGeometry(600, 200, 600);
         // invert the geometry on the x-axis so that all of the faces point inward
@@ -56,67 +66,71 @@
 
         var cuarto = new THREE.Mesh(cuartoGeo, materialCuarto);
 
-        //Lights
-        var light = new THREE.PointLight(0xffffff, 1);
-        light.position.set(0, 90, 0);
         //scene
         camera.position.set(0, 0, 0);
-        inter.position.set(40, 20, 0);
+        inter.position.set(40, 50, 0);
         inter.name = "inter";
         gate1.position.set(-200, -90, -200);
+        gate1.scale.set(100, 1, 100);
         gate1.name = "gate1";
         gate2.position.set(200, -90, 200);
+        gate2.scale.set(100, 1, 100);
         gate2.name = "gate2";
 
         scene.add(gate1);
         scene.add(gate2);
-        scene.add(light);
+        //scene.add(light);
         scene.add(inter);
         scene.add(cuarto);
 
         var t = 0.0;
 
         window.addEventListener('resize', onWindowResize, false);
-
+        //gris oscuro = 6b6b6b
+        //gris claro = ededed
+        //blanco = ffffff
         var on = false;
-        cuarto.material.color.set(0x000000);
+        cuarto.material.color.set(0x6b6b6b);
         function animate() {
             window.requestAnimationFrame(animate);
-            t += 0.01;
             raycaster.setFromCamera(mouse, camera);
             var intersects = raycaster.intersectObjects(scene.children, true);
+            inter.material.color.set(0x6b6b6b);
             if (intersects.length > 0) {
-
-                intersects[0].object.material.color.set(0xaaaaaa);
+                //intersects[0].object.material.color.set(0xaaaaaa);
                 var x = intersects[0].object.position.x;
                 var z = intersects[0].object.position.z;
                 switch (intersects[0].object.name) {
                     case "inter":
+                        inter.material.color.set(0xbb0000);
+                        t += 0.01;
                         if (on) {
-                            if(t >= 3 ){
-                                cuarto.material.color.set(0x000000);
-                                inter.material.color.set(0xffee00);
+                            if (t >= 1.0) {
+                                cuarto.material.color.set(0x6b6b6b);//gris oscuro
+                                inter.material.color.set(0x6b6b6b);//gris oscuro
                                 on = false;
                                 t = 0.0
                             }
-                            
+
                         } else {
-                            if(t >= 3){
-                                cuarto.material.color.set(0xffffff);
-                                inter.material.color.set(0xffffff);
+                            if (t >= 1.0) {
+                                cuarto.material.color.set(0xededed);//gris claro
+                                inter.material.color.set(0xffffff);//blanco
                                 on = true;
                                 t = 0.0;
-                            }  
+                            }
                         }
                         break;
                     case "gate1":
+                        t += 0.01;
                         camera.position.set(x, 0, z)
                         break;
                     case "gate2":
+                        t += 0.01;
                         camera.position.set(x, 0, z)
-
                         break;
                     default:
+                        t = 0.0;
                         break;
                 }
             }
